@@ -6,9 +6,7 @@ const autoCompleteConfig = {
         ${movie.Title} (${movie.Year})
         `;
     },
-    onOptionSelect(movie) {
-        onMovieSelect(movie);
-    },
+
     inputValue(movie){
         return movie.Title
     },
@@ -31,14 +29,24 @@ const autoCompleteConfig = {
 
 createAutoComplete({
     ...autoCompleteConfig,
-    root: document.querySelector('#left-autocomplete'), 
+    root: document.querySelector('#left-autocomplete'),
+    onOptionSelect(movie) {
+        document.querySelector('.tutorial').classList.add('is-hidden');
+        onMovieSelect(movie, document.querySelector('#left-summary'), 'left');
+    }
 });
 createAutoComplete({
     ...autoCompleteConfig,
-    root: document.querySelector('#right-autocomplete'), 
+    root: document.querySelector('#right-autocomplete'),
+    onOptionSelect(movie) {
+        document.querySelector('.tutorial').classList.add('is-hidden');
+        onMovieSelect(movie, document.querySelector('#right-summary'), 'right');
+    }
 });
 
-const onMovieSelect = async (movie) => {
+let leftMovie;
+let rightMovie;
+const onMovieSelect = async (movie, summaryElement, side) => {
     const response = await axios.get('http://www.omdbapi.com', {
         params: {
             apikey: '6ac39780',
@@ -46,10 +54,42 @@ const onMovieSelect = async (movie) => {
         }
     });
 
-    document.querySelector('#summary').innerHTML = movieTemplate(response.data);
+    summaryElement.innerHTML = movieTemplate(response.data);
+
+    if (side === 'left'){
+        leftMovie = response.data
+    } else {
+        rightMovie = response.data
+    }
+
+    if (leftMovie && rightMovie) {
+        runComparison();
+    }
 };
 
+const runComparison = () => {
+    console.log('time for caomparison')
+}
+
 const movieTemplate = (movieDetail) => {
+    const dollars = parseInt(
+        movieDetail.BoxOffice.replace(/\$/g, '').replace(/,/g, ''));
+    const metascore = parseInt(movieDetail.Metascore);
+    const imdbRating = parseFloat(movieDetail.imdbRating);
+    const imdbVotes = parseInt(movieDetail.imdbVotes.replace(/,/g, ''));
+
+    const awards = movieDetail.Awards.split(' ').reduce((prev, word) => {
+        const value = parseInt(word);
+
+        if (isNaN(value)) {
+            return prev;
+        } else {
+            return prev += value
+        }
+    }, 0);
+
+    console.log(awards);
+
     return `
     <article class="media">
         <figure class="media-left">
@@ -69,23 +109,23 @@ const movieTemplate = (movieDetail) => {
         <p class="title">${movieDetail.Language}</p>
         <p class="subtitle">Language</p>
     </article>
-    <article class="notification is-primary">
+    <article data-value=${awards} class="notification is-primary">
         <p class="title">${movieDetail.Awards}</p>
         <p class="subtitle">Awards</p>
     </article>
-    <article class="notification is-primary">
+    <article data-value=${dollars} class="notification is-primary">
         <p class="title">${movieDetail.BoxOffice}</p>
         <p class="subtitle">Box Office</p>
     </article>
-    <article class="notification is-primary">
+    <article data-value=${metascore} class="notification is-primary">
         <p class="title">${movieDetail.Metascore}</p>
         <p class="subtitle">Metascore</p>
     </article>
-    <article class="notification is-primary">
+    <article data-value=${imdbRating} class="notification is-primary">
         <p class="title">${movieDetail.imdbRating}</p>
         <p class="subtitle">IMDB Rating</p>
     </article>
-    <article class="notification is-primary">
+    <article data-value=${imdbVotes} class="notification is-primary">
         <p class="title">${movieDetail.imdbVotes}</p>
         <p class="subtitle">IMDB Votes</p>
     </article>
