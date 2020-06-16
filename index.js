@@ -68,7 +68,24 @@ const onMovieSelect = async (movie, summaryElement, side) => {
 };
 
 const runComparison = () => {
-    console.log('time for caomparison')
+    const leftSideStats = document.querySelectorAll('#left-summary .notification');
+    const rightSideStats = document.querySelectorAll('#right-summary .notification');
+
+    leftSideStats.forEach((leftstat, index) => {
+        const rightstat = rightSideStats[index];
+
+        const leftSideValue = parseInt(leftstat.dataset.value);
+        const rightSideValue = parseInt(rightstat.dataset.value);
+
+        if (rightSideValue > leftSideValue) {
+            leftstat.classList.remove('is-primary');
+            leftstat.classList.add('is-warning');
+        } else {
+            rightstat.classList.remove('is-primary');
+            rightstat.classList.add('is-warning');
+        }
+    });
+
 }
 
 const movieTemplate = (movieDetail) => {
